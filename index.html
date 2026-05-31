@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suspect Tracker Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Segoe UI', Tahoma, sans-serif; font-weight: 700; }
+
+        :root {
+            --accent: #38bdf8;
+            --include-color: #22c55e;
+            --exclude-color: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            background-image: url('bg.png');
+            background-repeat: repeat;
+            background-size: auto;
+            background-attachment: fixed;
+        }
+
+        .app-overlay {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 6px #000000;
+        }
+
+        p.subtitle {
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 4px #000000;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .traits-panel {
+            flex: 1;
+            min-width: 320px;
+            background: rgba(153, 125, 121, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            height: fit-content;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .traits-panel h2 {
+            color: #ffffff;
+            margin-top: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
+        }
+
+        .trait-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 14px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .trait-name {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 4px;
+            background: rgba(0,0,0,0.3);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .radio-group label {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            user-select: none;
+            color: rgba(255,255,255,0.5);
+            background: transparent;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .radio-group input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .radio-group label:has(input[value="neutral"]:checked) {
+            background: rgba(255,255,255,0.22);
+            color: #ffffff;
+        }
+
+        .radio-group label:has(input[value="include"]:checked) {
+            background: var(--include-color);
+            color: #ffffff;
+        }
+
+        .radio-group label:has(input[value="exclude"]:checked) {
+            background: var(--exclude-color);
+            color: #ffffff;
+        }
+
+        .suspects-panel {
+            flex: 2;
+            min-width: 350px;
+        }
+
+        .suspects-panel h2 {
+            color: #ffffff;
+            margin-top: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px #000000;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 15px;
+        }
+
+        .suspect-card {
+            background: rgba(153, 125, 121, 0.45);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.18);
+            transition: background 0.2s;
+        }
+
+        .suspect-card:hover {
+            background: rgba(153, 125, 121, 0.65);
+        }
+
+        .suspect-card.eliminated {
+            display: none;
+        }
+
+        .suspect-header {
+            display: flex;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .suspect-id {
+            color: #fde68a;
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tag {
+            background: rgba(0,0,0,0.3);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 15px;
+            color: rgba(255,255,255,0.85);
+            border: 1px solid rgba(255,255,255,0.12);
+            letter-spacing: 0.3px;
+        }
+
+        .tag.matched-include {
+            background: rgba(20, 83, 45, 0.75);
+            color: #bbf7d0;
+            border: 1px solid var(--include-color);
+        }
+
+        #reset-btn {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: rgba(255,255,255,0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            margin-top: 15px;
+            width: 100%;
+            display: block;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        #reset-btn:hover {
+            background: rgba(255,255,255,0.28);
+            border-color: rgba(255,255,255,0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-overlay">
+        <h1>Retro Rift</h1>
+        <p class="subtitle">INC = Must Have | EXC = Cannot Have | Cards automatically hide when eliminated</p>
+
+        <div class="container">
+            <div class="traits-panel">
+                <h2>Filter Traits</h2>
+                <div id="traits-list"></div>
+                <button id="reset-btn" onclick="resetFilters()">Reset All Filters</button>
+            </div>
+
+            <div class="suspects-panel">
+                <h2>Suspects Remaining (<span id="count">24</span>/24)</h2>
+                <div class="grid" id="suspects-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const suspects = [
+            { id: 1, name: "Fast Noob", traits: ["Hacker", "Alien Help", "Destructive"] },
+            { id: 2, name: "Fastest Noob", traits: ["Hacker", "Sword Swap", "Trapper"] },
+            { id: 3, name: "Wizard Noob", traits: ["Hacker", "Destructive", "Trapper"] },
+            { id: 4, name: "Mr. Mooooolah", traits: ["Hacker", "Alien Help", "Prepared"] },
+            { id: 5, name: "Deathspeaker", traits: ["Hacker", "Sword Swap", "Alien Help"] },
+            { id: 6, name: "Seer", traits: ["Trapper", "Hidden Evidence", "Hacker"] },
+            { id: 7, name: "Kleos", traits: ["Sword Swap", "Prepared", "Trapper"] },
+            { id: 8, name: "Zombie", traits: ["Alien Help", "Hidden Evidence", "Hacker"] },
+            { id: 9, name: "Angry Tomato", traits: ["Hidden Evidence", "Sword Swap", "Prepared"] },
+            { id: 10, name: "Overseer", traits: ["Alien Help", "Prepared", "Trapper"] },
+            { id: 11, name: "Tank Noob", traits: ["Hacker", "Sword Swap", "Prepared"] },
+            { id: 12, name: "Frigid", traits: ["Trapper", "Hidden Evidence", "Prepared"] },
+            { id: 13, name: "Mutant Noob", traits: ["Hidden Evidence", "Sword Swap", "Destructive"] },
+            { id: 14, name: "Buff Noob", traits: ["Hacker", "Sword Swap", "Destructive"] },
+            { id: 15, name: "Hidden", traits: ["Destructive", "Prepared", "Trapper"] },
+            { id: 16, name: "Ghouling", traits: ["Hidden Evidence", "Alien Help", "Prepared"] },
+            { id: 17, name: "Boss Noob", traits: ["Sword Swap", "Alien Help", "Destructive"] },
+            { id: 18, name: "Jhon Doe", traits: ["Alien Help", "Destructive", "Prepared"] },
+            { id: 19, name: "Noob", traits: ["Sword Swap", "Destructive", "Prepared"] },
+            { id: 20, name: "1x1x1x1", traits: ["Hacker", "Alien Help", "Trapper"] },
+            { id: 21, name: "Ghost Noob", traits: ["Hidden Evidence", "Sword Swap", "Trapper"] },
+            { id: 22, name: "Vertex", traits: ["Hidden Evidence", "Destructive", "Prepared"] },
+            { id: 23, name: "Nanabro", traits: ["Hidden Evidence", "Alien Help", "Trapper"] },
+            { id: 24, name: "DJ", traits: ["Hidden Evidence", "Destructive", "Trapper"] }
+        ];
+
+        const allTraits = [
+            "Hidden Evidence", "Sword Swap", "Prepared",
+            "Hacker", "Trapper", "Destructive", "Alien Help"
+        ];
+
+        let cachedRows = [];
+        let cachedCards = [];
+        let countDisplay;
+
+        function init() {
+            const traitsList = document.getElementById('traits-list');
+            countDisplay = document.getElementById('count');
+
+            allTraits.forEach((trait, i) => {
+                const row = document.createElement('div');
+                row.className = 'trait-row';
+                row.innerHTML = `
+                    <span class="trait-name">${trait}</span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="trait-${i}" value="exclude" onchange="filterSuspects()">EXC</label>
+                        <label><input type="radio" name="trait-${i}" value="neutral" checked onchange="filterSuspects()">—</label>
+                        <label><input type="radio" name="trait-${i}" value="include" onchange="filterSuspects()">INC</label>
+                    </div>
+                `;
+                traitsList.appendChild(row);
+                cachedRows.push({ name: trait, inputs: row.querySelectorAll('input') });
+            });
+
+            const grid = document.getElementById('suspects-grid');
+            suspects.forEach((suspect) => {
+                const card = document.createElement('div');
+                card.className = 'suspect-card';
+                let tagsHtml = suspect.traits.map(t => `<span class="tag" data-trait="${t}">${t}</span>`).join('');
+                card.innerHTML = `
+                    <div class="suspect-header">
+                        <span class="suspect-id">${suspect.id}.</span>
+                        <span class="suspect-name">${suspect.name}</span>
+                    </div>
+                    <div class="tag-container">${tagsHtml}</div>
+                `;
+                grid.appendChild(card);
+                cachedCards.push({ element: card, traits: suspect.traits, tags: card.querySelectorAll('.tag') });
+            });
+        }
+
+        function filterSuspects() {
+            const includes = [];
+            const excludes = [];
+
+            for (let i = 0; i < cachedRows.length; i++) {
+                const row = cachedRows[i];
+                let selectedValue = 'neutral';
+                for (let j = 0; j < row.inputs.length; j++) {
+                    if (row.inputs[j].checked) { selectedValue = row.inputs[j].value; break; }
+                }
+                if (selectedValue === 'include') includes.push(row.name);
+                if (selectedValue === 'exclude') excludes.push(row.name);
+            }
+
+            let activeCount = 0;
+            for (let i = 0; i < cachedCards.length; i++) {
+                const card = cachedCards[i];
+                let matchesInclude = includes.every(t => card.traits.includes(t));
+                let matchesExclude = excludes.every(t => !card.traits.includes(t));
+                const visible = matchesInclude && matchesExclude;
+                card.element.classList.toggle('eliminated', !visible);
+                if (visible) activeCount++;
+                card.tags.forEach(tag => {
+                    tag.className = includes.includes(tag.getAttribute('data-trait')) ? 'tag matched-include' : 'tag';
+                });
+            }
+            countDisplay.innerText = activeCount;
+        }
+
+        function resetFilters() {
+            for (let i = 0; i < cachedRows.length; i++) cachedRows[i].inputs[1].checked = true;
+            filterSuspects();
+        }
+
+        init();
+    </script>
+</body>
+</html>
